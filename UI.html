@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<style>
+    .container2 {
+        display: flex;
+        flex-direction: row;
+    }
+
+    button {
+        width: 70px;
+        height: 50px;
+    }
+
+    body {
+        display: flex;
+        justify-content: center;
+        flex-wrap: nowrap;
+        flex-direction: column;
+        align-items: center;
+    }
+</style>
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Control page</title>
+</head>
+
+<body>
+    
+    <div id="php-content"></div>
+    
+    <canvas id="canvas" width="400" height="400"></canvas>
+    
+    <button style="margin-bottom: 10px;" onclick="sendRequest('moveforward.php', 'forward')">forward</button>
+    
+    <br>
+    <span class="container2">
+        
+        <button onclick="sendRequest('moveleft.php', 'left')">left</button>
+        
+        <button onclick="sendRequest('stopmoving.php', 'stop')">stop</button>
+        
+        <button style="margin-bottom: 10px;" onclick="sendRequest('moveright.php', 'right')">right</button>
+
+        
+    </span>
+    <br>
+    
+    <button onclick="sendRequest('movebackward.php', 'backward')">backward</button>
+
+    <br><br>
+
+    <button onclick="resetCanvas()">reset</button>
+
+</body>
+
+<script>
+const baseUrl = 'http://localhost/robot1/';
+let x = 200;
+let y = 200;
+
+function sendRequest(url, value) {
+  const xhr = new XMLHttpRequest();
+  xhr.open('POST', baseUrl + url);
+  xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+  xhr.onload = function() {
+    if (xhr.status === 200) {
+      console.log(xhr.responseText);
+      refreshPhpContent();
+      drawDirection(value);
+    }
+  };
+  xhr.send(encodeURI(value + '=' + value));
+}
+
+function refreshPhpContent() {
+  const xhr = new XMLHttpRequest();
+  xhr.open('GET', baseUrl + 'fetch.php');
+  xhr.onload = function() {
+    if (xhr.status === 200) {
+      document.getElementById('php-content').innerHTML = xhr.responseText;
+    }
+  };
+  xhr.send();
+}
+refreshPhpContent();
+
+function drawDirection(direction) {
+  const canvas = document.getElementById("canvas");
+  const ctx = canvas.getContext("2d");
+  
+  ctx.strokeStyle = "white";
+  
+  let newX = x;
+  let newY = y;
+
+  switch (direction) {
+      case "forward":
+          newY -= 10;
+          break;
+      case "backward":
+          newY += 10;
+          break;
+      case "left":
+          newX -= 10;
+          break;
+      case "right":
+          newX += 10;
+          break;
+      default:
+          break;
+  }
+
+  ctx.beginPath();
+  ctx.moveTo(x, y);
+  ctx.lineTo(newX, newY);
+  ctx.stroke();
+
+  x = newX;
+  y = newY;
+}
+
+function resetCanvas() {
+    const canvas = document.getElementById("canvas");
+    const ctx = canvas.getContext("2d");
+    
+    ctx.fillStyle = "grey";
+    ctx.fillRect(0,0,canvas.width,canvas.height);
+    
+    x = canvas.width / 2;
+    y = canvas.height / 2; 
+}
+
+resetCanvas();
+</script>
+
+</html>
